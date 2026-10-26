@@ -1,0 +1,336 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Appointment Scheduling System</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f7;
+            margin: 0;
+            padding: 25px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .header {
+            background: #234567;
+            color: white;
+            text-align: center;
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            margin-top: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #00000010;
+        }
+
+        h2 {
+            color: #234567;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px;
+            margin-top: 6px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button, .button {
+            display: inline-block;
+            padding: 10px 15px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 5px;
+            background: #234567;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .cancel-button {
+            background: #c0392b;
+            padding: 7px 10px;
+        }
+
+        .message {
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #234567;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f5f7fa;
+        }
+
+        .status-booked {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-cancelled {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-form input {
+            flex: 1;
+        }
+
+        .search-form button {
+            margin-top: 6px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Appointment Scheduling System</h1>
+        <p>Book, manage and track your appointments</p>
+    </div>
+
+    <div class="card">
+
+        <h2>Book an Appointment</h2>
+
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div class="message {{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <form action="{{ url_for('book_appointment') }}" method="POST">
+
+            <label for="name">Full Name</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                maxlength="100"
+                required
+            >
+
+            <label for="email">Email Address</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                required
+            >
+
+            <label for="phone">Phone Number</label>
+            <input
+                type="tel"
+                id="phone"
+                name="phone"
+                pattern="[0-9]{10,15}"
+                title="Enter 10 to 15 digits"
+                required
+            >
+
+            <label for="category">Appointment Category</label>
+            <select id="category" name="category" required>
+                <option value="">Select a category</option>
+
+                {% for item in categories %}
+                    <option value="{{ item }}">{{ item }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="date">Appointment Date</label>
+            <input
+                type="date"
+                id="date"
+                name="date"
+                min="{{ today }}"
+                required
+            >
+
+            <label for="time">Appointment Time</label>
+            <input
+                type="time"
+                id="time"
+                name="time"
+                required
+            >
+
+            <button type="submit">Book Appointment</button>
+
+        </form>
+
+    </div>
+
+    <div class="card">
+
+        <h2>Manage Appointments</h2>
+
+        <form action="{{ url_for('home') }}" method="GET"
+              class="search-form">
+
+            <input
+                type="text"
+                name="search"
+                placeholder="Search by name or appointment ID"
+                value="{{ search }}"
+            >
+
+            <button type="submit">Search</button>
+
+            <a href="{{ url_for('home') }}" class="button">
+                Show All
+            </a>
+
+        </form>
+
+        <div class="table-container">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for appointment in appointments %}
+                        <tr>
+                            <td>{{ appointment.id }}</td>
+                            <td>{{ appointment.name }}</td>
+                            <td>{{ appointment.category }}</td>
+                            <td>{{ appointment.appointment_date }}</td>
+                            <td>{{ appointment.appointment_time }}</td>
+
+                            <td>
+                                {% if appointment.status == "Booked" %}
+                                    <span class="status-booked">
+                                        Booked
+                                    </span>
+                                {% else %}
+                                    <span class="status-cancelled">
+                                        Cancelled
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if appointment.status == "Booked" %}
+                                    <form
+                                        action="{{ url_for(
+                                            'cancel_appointment',
+                                            appointment_id=appointment.id
+                                        ) }}"
+                                        method="POST"
+                                        onsubmit="return confirm(
+                                            'Are you sure you want to cancel this appointment?'
+                                        );"
+                                    >
+                                        <button
+                                            type="submit"
+                                            class="cancel-button"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    No action
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                    {% else %}
+                        <tr>
+                            <td colspan="7">
+                                No appointments found.
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
