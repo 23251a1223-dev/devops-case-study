@@ -1,14 +1,22 @@
-
 import unittest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 
 class AppointmentSystemTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.driver = webdriver.Chrome()
+        options = Options()
+        options.binary_location = (
+            r"C:\Users\gnits\AppData\Local\Google\Chrome\Application\chrome.exe"
+        )
+        options.add_argument("--headless=new")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+
+        cls.driver = webdriver.Chrome(options=options)
         cls.url = "http://localhost:31979"
 
     def setUp(self):
@@ -45,19 +53,14 @@ class AppointmentSystemTests(unittest.TestCase):
             By.TAG_NAME, "body"
         ).text.lower()
 
-        self.assertNotIn(
-            "internal server error",
-            page_text
-        )
-        self.assertNotIn(
-            "bad gateway",
-            page_text
-        )
+        self.assertNotIn("internal server error", page_text)
+        self.assertNotIn("bad gateway", page_text)
         print("Browser error check passed")
 
     @classmethod
     def tearDownClass(cls):
-        cls.driver.quit()
+        if hasattr(cls, "driver"):
+            cls.driver.quit()
 
 
 if __name__ == "__main__":
