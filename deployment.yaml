@@ -1,0 +1,20 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appointment-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: appointment-system
+  template:
+    metadata:
+      labels:
+        app: appointment-system
+    spec:
+      containers:
+        - name: appointment-system
+          image: ramya7890/appointment-system:1.0
+          ports:
+            - containerPort: 5000

@@ -1,12 +1,20 @@
 
 from flask import Flask, render_template, request, redirect, url_for, flash
 import sqlite3
+import os
 from datetime import date
 
 app = Flask(__name__)
 app.secret_key = "appointment-system-devops"
 
-DATABASE = "appointments.db"
+
+DATABASE = os.environ.get(
+    "DATABASE",
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "appointments.db"
+    )
+)
 
 CATEGORIES = [
     "General Consultation",
